@@ -46,18 +46,27 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showConfigGuide, setShowConfigGuide] = useState(false);
+  const [isDomainError, setIsDomainError] = useState(false);
 
   // Trigger Google Login
   const handleGoogleLogin = async () => {
     setLoading(true);
     setErrorMessage(null);
+    setIsDomainError(false);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
       onLoginSuccess(result.user, false);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Third-party Google Authentication was aborted or failed.');
+      const isDomainErr = err.code === 'auth/unauthorized-domain' || 
+                         (err.message && err.message.toLowerCase().includes('unauthorized-domain'));
+      setIsDomainError(isDomainErr);
+      if (isDomainErr) {
+        setErrorMessage('Firebase Domain Authorization Required: This deployment domain has not been whitelisted in your Firebase projects settings yet.');
+      } else {
+        setErrorMessage(err.message || 'Third-party Google Authentication was aborted or failed.');
+      }
     } finally {
       setLoading(false);
     }
@@ -271,6 +280,13 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
                 >
                   Get Sketching (Sign Up Today) <ArrowRight className="h-4.5 w-4.5 text-rose-100" />
                 </button>
+                <button
+                  id="landing_guest_sandbox_btn"
+                  onClick={() => onLoginSuccess(null, true)}
+                  className="px-6 py-4 bg-zinc-200 hover:bg-zinc-300 text-zinc-800 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2.5 border-2 border-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.06)] transition-all cursor-pointer w-full text-center hover:scale-[1.01] active:translate-y-1"
+                >
+                  ✨ Just Try as Guest (Sandbox)
+                </button>
               </div>
             </div>
 
@@ -368,26 +384,69 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
             {errorMessage && (
               <div className="p-3 bg-rose-50 border border-rose-150 text-rose-700 rounded-xl text-xs font-semibold leading-relaxed flex gap-2.5 items-start">
                 <Info className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>{errorMessage}</span>
+                <div className="flex-1">
+                  <span>{errorMessage}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Unauthorized Domain Resolution Guide */}
+            {isDomainError && (
+              <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex flex-col gap-3 font-semibold text-left">
+                <span className="font-bold uppercase tracking-wider text-[10px] text-amber-800 flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-amber-600 shrink-0" />
+                  How to Fix (Authorized Domains Guide):
+                </span>
+                <p className="text-[11px] leading-relaxed text-amber-850 font-normal">
+                  You are logging in from an external deployment URL. Because you are not the owner of the system's default auto-provisioned project (<code className="bg-amber-100 rounded px-1">{firebaseConfig.projectId}</code>), you cannot add this URL to its authorized domains dashboard.
+                </p>
+                <div className="bg-white/80 p-2.5 rounded-lg border border-amber-100 flex flex-col gap-1.5 font-mono text-[10px] text-amber-905">
+                  <div className="font-sans font-bold text-[9px] uppercase text-zinc-550 mb-0.5">Domains needing authorization:</div>
+                  <div className="truncate select-all bg-zinc-50 p-1.5 rounded border border-zinc-200">ais-dev-ibx75bjosh5qt3f5fjismh-954514971547.asia-southeast1.run.app</div>
+                  <div className="truncate select-all bg-zinc-50 p-1.5 rounded border border-zinc-200">ais-pre-ibx75bjosh5qt3f5fjismh-954514971547.asia-southeast1.run.app</div>
+                </div>
+                <div className="flex flex-col gap-1.5 text-[11px] leading-relaxed text-amber-850 font-medium">
+                  <div className="font-bold">✨ Two Solutions:</div>
+                  <ol className="list-decimal pl-4.5 flex flex-col gap-2 font-semibold">
+                    <li>
+                      <span className="font-bold text-amber-950">Option 1: Bypassing credentials</span> - Click this link to go straight into the <button type="button" className="underline hover:text-emerald-750 cursor-pointer font-bold" onClick={() => onLoginSuccess(null, true)}>Interactive Guest Sandbox (Persistent Local DB)</button> which is fully functional immediately!
+                    </li>
+                    <li>
+                      <span className="font-bold text-amber-950">Option 2: Personal Firebase Cloud Database</span> - Run the <code className="bg-amber-100 rounded px-1 font-mono text-[10px]">set_up_firebase</code> tool in AI Studio chat with your <span className="italic">own personal Firebase Project ID</span>. Since you are the owner, you can register these domain coordinates under <strong>Authentication &gt; Settings &gt; Authorized domains</strong> in your Google Firebase Console!
+                    </li>
+                  </ol>
+                </div>
               </div>
             )}
 
             {/* Social Authentication buttons */}
-            <button
-              id="auth_google_submit"
-              type="button"
-              disabled={loading}
-              onClick={handleGoogleLogin}
-              className="w-full py-2.5 border-2 border-zinc-200 hover:bg-zinc-50 rounded-xl text-xs font-bold flex items-center justify-center gap-2.5 cursor-pointer hover:border-zinc-300 shadow-xs transition-colors disabled:opacity-50"
-            >
-              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                id="auth_google_submit"
+                type="button"
+                disabled={loading}
+                onClick={handleGoogleLogin}
+                className="w-full py-2.5 border-2 border-zinc-200 hover:bg-zinc-50 rounded-xl text-xs font-bold flex items-center justify-center gap-2.5 cursor-pointer hover:border-zinc-300 shadow-xs transition-colors disabled:opacity-50"
+              >
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              <button
+                id="auth_guest_submit"
+                type="button"
+                onClick={() => onLoginSuccess(null, true)}
+                className="w-full py-2.5 border-2 border-dashed border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-xl text-xs font-bold flex items-center justify-center gap-2.5 cursor-pointer shadow-xs transition-colors"
+                title="Bypass cloud authentication and use local storage Sandbox"
+              >
+                <span>✨ Try Offline Guest Sandbox (Persistent)</span>
+              </button>
+            </div>
 
             {/* Separator row */}
             <div className="flex items-center gap-3">
