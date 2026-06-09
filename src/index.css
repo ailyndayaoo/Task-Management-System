@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;550;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-hand: "Inter", system-ui, sans-serif;
+  --font-sketch: "Inter", system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #fcfcf9;
+  background-image: radial-gradient(#e4e4e0 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+  color: #181c25;
+}
+
+/* Washi tape edge effect */
+.washi-tape {
+  mask-image: PaintWorklet; /* Fallback safe jagged margins */
+  clip-path: polygon(0% 12%, 4% 0%, 14% 10%, 25% 1%, 38% 12%, 52% 2%, 63% 10%, 75% 0%, 88% 12%, 100% 1%);
+}
+
+/* Notebook papers background pattern */
+.notebook-rules {
+  background-image: linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+  background-size: 100% 22px;
+  line-height: 22px;
+}
+
+/* Sketchy hand-drawn border effect */
+.sketchy-border {
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+}
+
+/* Custom gorgeous thin scrollbar to match Zinc aesthetics */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dcdcd8;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c8c8c0;
+}

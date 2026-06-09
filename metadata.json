@@ -1,0 +1,6 @@
+{
+  "name": "Task Management System",
+  "description": "An attractive, simple, and ultra user-friendly To-Do Notes manager. It facilitates quick card composition, inline interactive sub-checklists, sticky pins, color categorization, and search filtering.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

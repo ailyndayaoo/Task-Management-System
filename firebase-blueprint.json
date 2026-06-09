@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "NoteChecklistItem": {
+      "title": "NoteChecklistItem",
+      "description": "An item in a todo note's checklist",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "isCompleted": { "type": "boolean" }
+      },
+      "required": ["id", "text", "isCompleted"]
+    },
+    "TodoNote": {
+      "title": "TodoNote",
+      "description": "A customized todo note with color details and checklist",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "checklist": {
+          "type": "array",
+          "description": "Checklist items related to the note"
+        },
+        "isPinned": { "type": "boolean" },
+        "colorName": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["id", "title", "content", "checklist", "isPinned", "colorName", "createdAt", "updatedAt", "userId"]
+    }
+  },
+  "firestore": {
+    "/notes/{noteId}": {
+      "schema": "TodoNote",
+      "description": "Main collection for notes synced with Firebase Authentication"
+    }
+  }
+}

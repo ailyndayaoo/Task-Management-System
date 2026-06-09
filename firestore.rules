@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+
+    // 3. Entity shape validation (The "Anti-Update-Gap")
+    function isValidTodoNote(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 1000
+        && data.content is string && data.content.size() <= 10000
+        && data.checklist is list && data.checklist.size() <= 100
+        && data.isPinned is bool
+        && data.colorName is string && data.colorName.size() <= 32
+        && data.userId is string && data.userId.size() <= 128
+        && data.userId == request.auth.uid;
+    }
+
+    // 4. Update Actions partition
+    function isTogglePinAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly(['isPinned', 'updatedAt']);
+    }
+
+    function isUpdateContentAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'colorName', 'isPinned', 'checklist', 'updatedAt']);
+    }
+
+    function isUpdateChecklistAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly(['checklist', 'updatedAt']);
+    }
+
+    // 5. Notes Collection Security Schema
+    match /notes/{noteId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn()
+        && isValidId(noteId)
+        && isValidTodoNote(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+        
+      allow update: if isSignedIn()
+        && existing().userId == request.auth.uid
+        && isValidTodoNote(incoming())
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isTogglePinAction() ||
+          isUpdateContentAction() ||
+          isUpdateChecklistAction()
+        );
+        
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}
