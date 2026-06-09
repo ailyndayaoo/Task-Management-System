@@ -1,9 +1,10 @@
 {
-  "projectId": "task-management-system-c5658",
-  "appId": "1:899697774517:web:0ab972613af45373eb93fc",
-  "apiKey": "AIzaSyCocSzmd7f1VwpsA7Xo46PumUvYdVMwjmo",
-  "authDomain": "task-management-system-c5658.firebaseapp.com",
-  "storageBucket": "task-management-system-c5658.firebasestorage.app",
-  "messagingSenderId": "899697774517",
-  "measurementId": "G-K03SLT5JFP"
+  "projectId": "tuned-guru-xtpfc",
+  "appId": "1:499568799343:web:4a569e143326b63054e79a",
+  "apiKey": "AIzaSyD_8TGrKBdWCg9Vu7oqSOrbs-Peh1cJDio",
+  "authDomain": "tuned-guru-xtpfc.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-ebfae88e-8464-4918-83cb-de4538a0fd6e",
+  "storageBucket": "tuned-guru-xtpfc.firebasestorage.app",
+  "messagingSenderId": "499568799343",
+  "measurementId": ""
 }
